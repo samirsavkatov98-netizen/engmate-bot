@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ApixAix — твой ИИ учитель английского в Telegram. Бесплатно. От A1 до C1.">
+<title>ApixAix — Учи английский с ИИ</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b14;
+    --surface: #0e1422;
+    --card: #131929;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --text: #f0f4ff;
+    --muted: #7a8ba8;
+    --glow: rgba(79,142,247,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,142,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,142,247,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+  .orb1 { width: 400px; height: 400px; background: rgba(79,142,247,0.2); top: -100px; right: -100px; animation: float1 8s ease-in-out infinite; }
+  .orb2 { width: 300px; height: 300px; background: rgba(167,139,250,0.15); bottom: 20%; left: -50px; animation: float2 10s ease-in-out infinite; }
+  .orb3 { width: 200px; height: 200px; background: rgba(52,211,153,0.1); top: 50%; right: 10%; animation: float3 7s ease-in-out infinite; }
+
+  @keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,20px)} }
+  @keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(20px,-20px)} }
+  @keyframes float3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-15px,15px)} }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(8,11,20,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .nav-cta {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .nav-cta:hover { background: #6a9ff8; transform: translateY(-1px); }
+
+  /* SECTIONS */
+  section { position: relative; z-index: 1; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 100px 24px 60px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 32px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .hero-badge span { animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 8vw, 72px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+
+  .hero h1 .gradient {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    font-size: clamp(16px, 3vw, 20px);
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    animation: fadeUp 0.6s ease 0.2s both;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent), #3b7de8);
+    color: white;
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s;
+    box-shadow: 0 0 30px rgba(79,142,247,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(79,142,247,0.5); }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  /* STATS */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 60px;
+    animation: fadeUp 0.6s ease 0.4s both;
+  }
+
+  .stat { text-align: center; }
+  .stat-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* FEATURES */
+  .features {
+    padding: 80px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 13px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: -1px;
+    margin-bottom: 60px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--glow), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .feature-card:hover { border-color: rgba(79,142,247,0.3); transform: translateY(-4px); }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .feature-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ROADMAP */
+  .roadmap {
+    padding: 80px 24px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .levels {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 40px;
+  }
+
+  .level-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s;
+  }
+
+  .level-card:hover { border-color: rgba(79,142,247,0.3); transform: translateX(4px); }
+
+  .level-badge {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    min-width: 50px;
+    text-align: center;
+  }
+
+  .level-a1 { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+  .level-a2 { background: rgba(79,142,247,0.15); color: #4f8ef7; border: 1px solid rgba(79,142,247,0.3); }
+  .level-b1 { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .level-b2 { background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3); }
+  .level-c1 { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+
+  .level-info { flex: 1; }
+  .level-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .level-desc { font-size: 13px; color: var(--muted); }
+  .level-time { font-size: 12px; color: var(--accent); font-weight: 500; white-space: nowrap; }
+
+  /* RESOURCES */
+  .resources {
+    padding: 80px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .resource-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.3s;
+    display: block;
+  }
+
+  .resource-card:hover { border-color: rgba(79,142,247,0.4); transform: translateY(-3px); }
+  .resource-icon { font-size: 24px; margin-bottom: 10px; }
+  .resource-name { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .resource-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* CTA */
+  .cta-section {
+    padding: 80px 24px;
+    text-align: center;
+  }
+
+  .cta-box {
+    max-width: 600px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, rgba(79,142,247,0.1), rgba(167,139,250,0.1));
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 24px;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(79,142,247,0.05) 0%, transparent 70%);
+    animation: rotate 10s linear infinite;
+  }
+
+  @keyframes rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+  .cta-box h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 800;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .cta-box p {
+    color: var(--muted);
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 40px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* BOT PREVIEW */
+  .bot-preview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    max-width: 340px;
+    margin: 50px auto 0;
+    animation: fadeUp 0.6s ease 0.5s both;
+  }
+
+  .bot-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bot-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .bot-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+  .bot-status { font-size: 12px; color: var(--accent3); }
+
+  .message {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .message.user {
+    background: rgba(79,142,247,0.15);
+    border: 1px solid rgba(79,142,247,0.2);
+    text-align: right;
+  }
+
+  .bot-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .bot-btn {
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 11px;
+    color: var(--accent);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bot-btn:hover { background: rgba(79,142,247,0.2); }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">ApixAix</div>
+  <a href="https://t.me/ApixAix_bot" class="nav-cta">🚀 Открыть бота</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span>●</span> Powered by Gemini AI
+  </div>
+
+  <h1>
+    Выучи английский<br>
+    <span class="gradient">с личным ИИ учителем</span>
+  </h1>
+
+  <p>
+    ApixAix — Telegram бот который ведёт тебя от нуля до C1.
+    Слова, грамматика, тесты и живая практика с ИИ. Бесплатно.
+  </p>
+
+  <div class="hero-buttons">
+    <a href="https://t.me/ApixAix_bot" class="btn-primary">
+      ✈️ Начать в Telegram
+    </a>
+    <a href="#features" class="btn-secondary">
+      Узнать больше →
+    </a>
+  </div>
+
+  <!-- Bot Preview -->
+  <div class="bot-preview">
+    <div class="bot-header">
+      <div class="bot-avatar">🤖</div>
+      <div>
+        <div class="bot-name">ApixAix</div>
+        <div class="bot-status">● онлайн</div>
+      </div>
+    </div>
+    <div class="message">👋 Привет! Я твой ИИ учитель английского. Уровень: A1 • XP: 0 ⚡</div>
+    <div class="message user">/start</div>
+    <div class="message">Выбери с чего начнём! 👇</div>
+    <div class="bot-buttons">
+      <div class="bot-btn">📚 Слова</div>
+      <div class="bot-btn">📝 Грамматика</div>
+      <div class="bot-btn">💬 ИИ чат</div>
+      <div class="bot-btn">🧪 Тест</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-number">A1→C1</div>
+      <div class="stat-label">Полный путь</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">10+</div>
+      <div class="stat-label">Тем словаря</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">8</div>
+      <div class="stat-label">Уроков грамматики</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">24/7</div>
+      <div class="stat-label">Всегда онлайн</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="reveal">
+    <p class="section-label">Возможности</p>
+    <h2 class="section-title">Всё что нужно для английского</h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <span class="feature-icon">🧠</span>
+      <div class="feature-title">ИИ учитель</div>
+      <div class="feature-desc">Gemini AI отвечает на твои вопросы, исправляет ошибки и объясняет грамматику на русском языке</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">📚</span>
+      <div class="feature-title">Словарный запас</div>
+      <div class="feature-desc">10 тем с примерами предложений. Флеш-карточки для быстрого запоминания слов</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">📝</span>
+      <div class="feature-title">Грамматика</div>
+      <div class="feature-desc">8 уроков от Present Simple до условных предложений с тестами после каждой темы</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">🏆</span>
+      <div class="feature-title">XP и уровни</div>
+      <div class="feature-desc">Зарабатывай опыт за каждое действие. 6 уровней от Новичка до Эксперта</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">🗺️</span>
+      <div class="feature-title">Дорожная карта</div>
+      <div class="feature-desc">Чёткий план от A1 до C1 с ежедневными задачами и еженедельными целями</div>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">🌐</span>
+      <div class="feature-title">Лучшие ресурсы</div>
+      <div class="feature-desc">Подборка лучших бесплатных сайтов для говорения, аудирования, чтения и письма</div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="roadmap" id="roadmap">
+  <div class="reveal">
+    <p class="section-label">Путь обучения</p>
+    <h2 class="section-title">От нуля до C1</h2>
+  </div>
+
+  <div class="levels">
+    <div class="level-card reveal">
+      <div class="level-badge level-a1">A1</div>
+      <div class="level-info">
+        <div class="level-name">🌱 Начинающий</div>
+        <div class="level-desc">Базовые фразы, приветствия, числа, цвета</div>
+      </div>
+      <div class="level-time">1-3 мес</div>
+    </div>
+    <div class="level-card reveal">
+      <div class="level-badge level-a2">A2</div>
+      <div class="level-info">
+        <div class="level-name">🌿 Элементарный</div>
+        <div class="level-desc">Простые разговоры, описание людей и мест</div>
+      </div>
+      <div class="level-time">3-6 мес</div>
+    </div>
+    <div class="level-card reveal">
+      <div class="level-badge level-b1">B1</div>
+      <div class="level-info">
+        <div class="level-name">📗 Средний</div>
+        <div class="level-desc">Путешествия, работа, понимание основных тем</div>
+      </div>
+      <div class="level-time">6-12 мес</div>
+    </div>
+    <div class="level-card reveal">
+      <div class="level-badge level-b2">B2</div>
+      <div class="level-info">
+        <div class="level-name">📘 Выше среднего</div>
+        <div class="level-desc">Свободное общение, фильмы без субтитров</div>
+      </div>
+      <div class="level-time">1-2 года</div>
+    </div>
+    <div class="level-card reveal">
+      <div class="level-badge level-c1">C1</div>
+      <div class="level-info">
+        <div class="level-name">📙 Продвинутый</div>
+        <div class="level-desc">Профессиональный уровень, IELTS 7.0+</div>
+      </div>
+      <div class="level-time">2-3 года</div>
+    </div>
+  </div>
+</section>
+
+<!-- RESOURCES -->
+<section class="resources" id="resources">
+  <div class="reveal">
+    <p class="section-label">Ресурсы</p>
+    <h2 class="section-title">Лучшие сайты для учёбы</h2>
+  </div>
+
+  <div class="resources-grid">
+    <a href="https://www.bbc.co.uk/learningenglish" target="_blank" class="resource-card reveal">
+      <div class="resource-icon">🎧</div>
+      <div class="resource-name">BBC Learning</div>
+      <div class="resource-desc">Аудирование и чтение от BBC. A2-C1</div>
+    </a>
+    <a href="https://www.duolingo.com" target="_blank" class="resource-card reveal">
+      <div class="resource-icon">🦜</div>
+      <div class="resource-name">Duolingo</div>
+      <div class="resource-desc">Игровой формат для начинающих. A1-B1</div>
+    </a>
+    <a href="https://quizlet.com" target="_blank" class="resource-card reveal">
+      <div class="resource-icon">🃏</div>
+      <div class="resource-name">Quizlet</div>
+      <div class="resource-desc">Флеш-карточки для слов. Все уровни</div>
+    </a>
+    <a href="https://www.perfect-english-grammar.com" target="_blank" class="resource-card reveal">
+      <div class="resource-icon">📝</div>
+      <div class="resource-name">Perfect Grammar</div>
+      <div class="resource-desc">Грамматика с упражнениями. A1-C1</div>
+    </a>
+    <a href="https://www.ted.com" target="_blank" class="resource-card reveal">
+      <div class="resource-icon">🎤</div>
+      <div class="resource-name">TED Talks</div>
+      <div class="resource-desc">Реальная речь носителей. B1-C1</div>
+    </a>
+    <a href="https://www.italki.com" target="_blank" class="resource-card reveal">
+      <div class="resource-icon">💬</div>
+      <div class="resource-name">italki</div>
+      <div class="resource-desc">Разговорная практика с носителями</div>
+    </a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-box reveal">
+    <h2>Начни учить английский<br>прямо сейчас</h2>
+    <p>Бесплатно. Без регистрации. Сразу в Telegram.</p>
+    <a href="https://t.me/ApixAix_bot" class="btn-primary" style="display:inline-flex">
+      ✈️ Открыть @ApixAix_bot
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 ApixAix • <a href="https://t.me/ApexAIx">@ApexAIx</a> • За помощью обращайтесь к <a href="https://t.me/ApexAIx">@ApexAIx</a></p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Smooth nav
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
